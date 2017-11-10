@@ -125,7 +125,7 @@ class BusinessRepository implements BusinessContract
         
         DB::commit();
 
-        return $this->formatData($business);
+        return $this->formatData($businesses);
     }
 
     /**
