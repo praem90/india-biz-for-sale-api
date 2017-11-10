@@ -48,8 +48,8 @@ class BusinessRepository implements BusinessContract
     /**
      * Format response business model data
      * 
-     * @param \Illuminate\Contracts\Pagination\LengthAwarePaginator $data
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @param \IteratorAggregate $data
+     * @return \IteratorAggregate
      */
     protected function formatData($data)
     {
@@ -105,15 +105,16 @@ class BusinessRepository implements BusinessContract
             $detail->address()->associate($address);
             $detail->save();
 
-            $businesses = array_get($data, 'business', []);
+            $businesses = collect();
 
-            foreach ($businesses as $business) {
+            foreach (array_get($data, 'business', []) as $business) {
                 $business = new Business($business);
                 $business->status_id = 1;
                 $business->listing_id = $this->getTemporaryListingId();
                 $business->detail()->associate($detail);
                 $business->transactionTypeDetail()->associate($trans_type_details);
                 $business->save();
+                $businesses->push($business);
                 event(new BusinessWasAdded($business));
             }
 
@@ -124,7 +125,7 @@ class BusinessRepository implements BusinessContract
         
         DB::commit();
 
-        return $this->formatBusiness($business);
+        return $this->formatData($business);
     }
 
     /**
