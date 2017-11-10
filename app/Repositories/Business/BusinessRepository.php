@@ -89,8 +89,6 @@ class BusinessRepository implements BusinessContract
     {
         DB::beginTransaction();
         try{
-            $business = new Business(array_get($data, 'business', []));
-            $business->status_id = 1;
 
             $detail = new BusinessDetail(array_get($data, 'details', []));
             $detail->status_id = 1;
@@ -98,10 +96,7 @@ class BusinessRepository implements BusinessContract
             $address = new Address(array_get($data, 'address', []));
             
             $trans_type_details = new BusinessTransactionTypeDetail(
-                array_only(
-                    array_get($data, 'transaction_type_details', []),
-                    $this->getFieldsByTransactionTypeId($business->transaction_type_id)
-                )
+                array_get($data, 'transaction_type_details', [])
             );
             
             $trans_type_details->save();
@@ -110,15 +105,23 @@ class BusinessRepository implements BusinessContract
             $detail->address()->associate($address);
             $detail->save();
 
-            $business->detail()->associate($detail);
-            $business->transactionTypeDetail()->associate($trans_type_details);
-            $business->listing_id = $this->getTemporaryListingId();
-            $business->save();
-            event(new BusinessWasAdded($business));
+            $businesses = array_get($data, 'business', []);
+
+            foreach ($businesses as $business) {
+                $business = new Business($business);
+                $business->status_id = 1;
+                $business->listing_id = $this->getTemporaryListingId();
+                $business->detail()->associate($detail);
+                $business->transactionTypeDetail()->associate($trans_type_details);
+                $business->save();
+                event(new BusinessWasAdded($business));
+            }
+
         } catch (\Exception $e) {
             DB::rollBack();
             return false;
         }
+        
         DB::commit();
 
         return $this->formatBusiness($business);

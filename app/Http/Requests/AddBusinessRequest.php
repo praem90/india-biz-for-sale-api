@@ -16,11 +16,11 @@ class AddBusinessRequest extends FormRequest
     public function rules()
     {
         return [
-            'business.transaction_type_id' => 'required|exists:transaction_types,id',
-            'business.title' => 'required|string',
-            'business.description' => 'required|string',
-            'business.ticket_size_min' => 'required|integer|max:'.$this->input('business.ticket_size_max'),
-            'business.ticket_size_max' => 'required|integer|min:'.$this->input('business.ticket_size_min'),
+            'business.*.transaction_type_id' => 'required|exists:transaction_types,id',
+            'business.*.title' => 'required|string',
+            'business.*.description' => 'required|string',
+            'business.*.ticket_size_min' => 'required|integer',
+            'business.*.ticket_size_max' => 'required|integer',
             'details.owner_id' => 'required|exists:users,id',
             'details.industry_id' => 'required|exists:industries,id',
             'details.business_type_id' => 'required|exists:business_types,id',
